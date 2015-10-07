@@ -22,7 +22,7 @@ my %lists = (
   Exported   => 'export',
 );
 
-my %prefix = (
+my %sigil = (
   SCALAR => '$',
   ARRAY  => '@',
   HASH   => '%',
@@ -53,11 +53,11 @@ sub ATTRIBUTE {
   my ($package, $symbol, $referent, $attribute, $payload, $phase, $file, $line) = @_;
   croak("lexical symbols are not exportable, in $file at line $line") unless ref $symbol;
   # $label is the name of the subroutine or variable
-  my $label  = *{$symbol}{NAME};
-  my $type   = ref $referent;
-  my $prefix = $prefix{$type};
-  my $list   = $lists{$attribute};
-  add($package, $list, $prefix . $label, $payload);
+  my $label = *{$symbol}{NAME};
+  my $type  = ref $referent;
+  my $sigil = $sigil{$type};
+  my $list  = $lists{$attribute};
+  add($package, $list, $sigil . $label, $payload);
 }
 
 sub import {
