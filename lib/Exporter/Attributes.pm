@@ -101,16 +101,16 @@ sub import {
     
     package main;
     
-    use FooBar;           # imports &Foo
+    use FooBar;           # import &Foo
     use FooBar qw(Bar);   # import &Bar
     use FooBar qw(:vars); # import $Cat and $Dog
     use FooBar qw(:all);  # import &Foo, &Bar, $Cat and $Dog
 
 =head1 DESCRIPTION
 
-This module is inspired by L<Exporter::Simple>, but that is module broken since a long time. The new implementation uses a smarter way, by rewriting the caller's symbol table then and goto L<Exporter/import>.
+This module is inspired by L<Exporter::Simple>, but this module is broken since a long time. The new implementation uses a smarter way, by rewriting the caller's symbol table and then goto L<Exporter/import>.
 
-The list the export symbols are captured with L<attributes>. There are two attributes:
+The list of the export symbols are captured with L<attributes>. There are two attributes:
 
 =over 4
 
@@ -130,7 +130,14 @@ The attributes accepts a list of tags as argument.
 
 This is an ambivalent function. When called as C<< Export::Attributes->import >> it just imports this L</import> function into the namespace of the caller.
 
-When called from any other class, it rewrites C<@EXPORT>, C<@EXPORT_OK> and C<@EXPORT_TAGS> and let the rest of the work done by L<Exporter>.
+When called from any other class, it rewrites C<@EXPORT>, C<@EXPORT_OK> and C<@EXPORT_TAGS> and let the rest of the work do by L<Exporter>.
+
+For overloading the I<import> function, use this template:
+
+    sub import {
+        # do some stuff, let @_ untouched
+        goto &Exporter::Attributes::import;
+    }
 
 =head1 TESTS
 
