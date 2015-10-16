@@ -6,7 +6,7 @@ package Exporter::Attributes;
 # ABSTRACT: Export symbols by attributes
 
 use Exporter 5.72 ();
-use Attribute::Universal
+use Attribute::Universal 0.002
   Exportable => 'ANY,BEGIN',
   Exported   => 'ANY,BEGIN';
 use Carp qw(croak);
@@ -30,15 +30,14 @@ my %sigil = (
 );
 
 sub add {
-  my ($package, $list, $name, $data) = @_;
+  my ($package, $list, $name, @tags) = @_;
   $symbols->{$package} //= {
     export => [],
     export_ok => [],
     export_tags => {},
   };
   push @{ $symbols->{$package}->{$list} } => $name;
-  return unless $data;
-  my @tags = map { split /[\s,]+/ } @$data;
+  return unless @tags;
   foreach my $tag (@tags) {
     push @{ $symbols->{$package}->{export_tags}->{$tag} } => $name;
   }
@@ -50,14 +49,13 @@ use namespace::clean;
 =cut
 
 sub ATTRIBUTE {
+  my $attr = Attribute::Universal::to_hash(@_);
   my ($package, $symbol, $referent, $attribute, $payload, $phase, $file, $line) = @_;
-  croak("lexical symbols are not exportable, in $file at line $line") unless ref $symbol;
-  # $label is the name of the subroutine or variable
-  my $label = *{$symbol}{NAME};
-  my $type  = ref $referent;
-  my $sigil = $sigil{$type};
-  my $list  = $lists{$attribute};
-  add($package, $list, $sigil . $label, $payload);
+  croak("lexical symbols are not exportable, in $file at line $line") unless ref $attr->{symbol};
+  my $sigil = $sigil{$attr->{type}};
+  my $list  = $lists{$attr->{attribute}};
+  my @tags  = map { split /[\s,]+/ } @{$attr->{payload}};
+  add($attr->{package}, $list, $sigil . $attr->{label}, @tags);
 }
 
 sub import {
