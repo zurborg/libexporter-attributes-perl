@@ -5,7 +5,7 @@ use strict;
 use lib 't/testlib';
 use Test::More tests => 3;
 
-use MyExport qw(:greet);
+use MyExport qw(:us);
 
 is(hello(), MyExport::hello(), 'exported sub hello()');
 is(hi(),    MyExport::hi(),    'exported sub hi()');
