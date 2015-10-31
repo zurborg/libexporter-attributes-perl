@@ -60,27 +60,27 @@ sub ATTRIBUTE {
 
 sub import {
   my $class = $_[0];
-  
+
   # export our own "import" method into the caller class
   # so abort here if "import" is called by "use Exporter::Attributes"
   goto &Exporter::import if $class eq __PACKAGE__;
-  
+
   # get export symbols or just return
   my $_symbols = $symbols->{$class} // return;
-  
+
   # build :all export tag by concat @EXPORT and @EXPORT_OK
   $_symbols->{export_tags}->{all} = [
     @{ $_symbols->{export} },
     @{ $_symbols->{export_ok} },
   ];
-  
+
   # this is a quite easy way to say "our @Class::EXPORT", which is normally not possible
   # we are rewriting the symbol table, dont let strict concern about it!
   no strict 'refs'; ## no critic
   *{"${class}::EXPORT"} = $_symbols->{export};
   *{"${class}::EXPORT_OK"} = $_symbols->{export_ok};
   *{"${class}::EXPORT_TAGS"} = $_symbols->{export_tags};
-  
+
   # and finally let import the symbol into the caller namespace.
   goto &Exporter::import;
 }
@@ -90,17 +90,17 @@ sub import {
 =head1 SYNOPSIS
 
     package FooBar;
-    
+
     use Exporter::Attributes qw(import);
-    
+
     sub Foo : Exported;
     sub Bar : Exportable;
-    
+
     our $Cat : Exportable(vars);
     our $Dog : Exportable(vars);
-    
+
     package main;
-    
+
     use FooBar;           # import &Foo
     use FooBar qw(Bar);   # import &Bar
     use FooBar qw(:vars); # import $Cat and $Dog
