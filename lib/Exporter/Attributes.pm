@@ -50,8 +50,7 @@ use namespace::clean;
 
 sub ATTRIBUTE {
   my $attr = Attribute::Universal::to_hash(@_);
-  my ($package, $symbol, $referent, $attribute, $payload, $phase, $file, $line) = @_;
-  croak("lexical symbols are not exportable, in $file at line $line") unless ref $attr->{symbol};
+  croak("lexical symbols are not exportable, in $attr->{file} at line $attr->{line}") unless ref $attr->{symbol};
   my $sigil = $sigil{$attr->{type}};
   my $list  = $lists{$attr->{attribute}};
   $attr->{payload} = [$attr->{payload}] unless ref $attr->{payload};
