@@ -51,8 +51,7 @@ sub ATTRIBUTE {
   croak("lexical symbols are not exportable, in $attr->{file} at line $attr->{line}") unless ref $attr->{symbol};
   my $sigil = $sigil{$attr->{type}};
   my $list  = $lists{$attr->{attribute}};
-  $attr->{payload} = [$attr->{payload}] unless ref $attr->{payload};
-  my @tags  = map { split /[\s,]+/ } grep defined, @{$attr->{payload}};
+  my @tags  = map { split /[\s,]+/ } grep defined, @{$attr->{content}};
   add($attr->{package}, $list, $sigil . $attr->{label}, @tags);
 }
 
