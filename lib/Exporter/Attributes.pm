@@ -6,9 +6,7 @@ package Exporter::Attributes;
 # ABSTRACT: Export symbols by attributes
 
 use Exporter 5.72 ();
-use Attribute::Universal 0.002
-  Exportable => 'ANY,BEGIN',
-  Exported   => 'ANY,BEGIN';
+use Attribute::Universal 0.003;
 use Carp qw(croak);
 
 # VERSION
@@ -60,10 +58,17 @@ sub ATTRIBUTE {
 
 sub import {
   my $class = $_[0];
+  my $caller = scalar caller;
 
-  # export our own "import" method into the caller class
-  # so abort here if "import" is called by "use Exporter::Attributes"
-  goto &Exporter::import if $class eq __PACKAGE__;
+  # if "import" is called by "use Exporter::Attributes"
+  if ($class eq __PACKAGE__) {
+    Attribute::Universal->import_into($caller,
+      Exportable => 'ANY,BEGIN',
+      Exported   => 'ANY,BEGIN',
+    );
+    # export our own "import" method into the caller class and abort here
+    goto &Exporter::import;
+  }
 
   # get export symbols or just return
   my $_symbols = $symbols->{$class} // return;
