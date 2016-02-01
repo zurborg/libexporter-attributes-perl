@@ -16,29 +16,29 @@ our @EXPORT_OK = qw(import);
 my $symbols = {};
 
 my %lists = (
-  Exportable => 'export_ok',
-  Exported   => 'export',
+    Exportable => 'export_ok',
+    Exported   => 'export',
 );
 
 my %sigil = (
-  SCALAR => '$',
-  ARRAY  => '@',
-  HASH   => '%',
-  CODE   => '&',
+    SCALAR => '$',
+    ARRAY  => '@',
+    HASH   => '%',
+    CODE   => '&',
 );
 
 sub add {
-  my ($package, $list, $name, @tags) = @_;
-  $symbols->{$package} //= {
-    export => [],
-    export_ok => [],
-    export_tags => {},
-  };
-  push @{ $symbols->{$package}->{$list} } => $name;
-  return unless @tags;
-  foreach my $tag (@tags) {
-    push @{ $symbols->{$package}->{export_tags}->{$tag} } => $name;
-  }
+    my ($package, $list, $name, @tags) = @_;
+    $symbols->{$package} //= {
+        export      => [],
+        export_ok   => [],
+        export_tags => {},
+    };
+    push @{ $symbols->{$package}->{$list} } => $name;
+    return unless @tags;
+    foreach my $tag (@tags) {
+        push @{ $symbols->{$package}->{export_tags}->{$tag} } => $name;
+    }
 }
 
 use namespace::clean;
@@ -47,46 +47,37 @@ use namespace::clean;
 =cut
 
 sub ATTRIBUTE {
-  my $attr = Attribute::Universal::to_hash(@_);
-  croak("lexical symbols are not exportable, in $attr->{file} at line $attr->{line}") unless ref $attr->{symbol};
-  my $sigil = $sigil{$attr->{type}};
-  my $list  = $lists{$attr->{attribute}};
-  my @tags  = map { split /[\s,]+/ } grep defined, @{$attr->{content}};
-  add($attr->{package}, $list, $sigil . $attr->{label}, @tags);
+    my $attr = Attribute::Universal::to_hash(@_);
+    croak("lexical symbols are not exportable, in $attr->{file} at line $attr->{line}") unless ref $attr->{symbol};
+    my $sigil = $sigil{$attr->{type}};
+    my $list  = $lists{$attr->{attribute}};
+    my @tags  = map { split /[\s,]+/ } grep defined, @{$attr->{content}};
+    add($attr->{package}, $list, $sigil . $attr->{label}, @tags);
 }
 
 sub import {
-  my $class = $_[0];
-  my $caller = scalar caller;
+    my $class = $_[0];
+    my $caller = scalar caller;
 
-  # if "import" is called by "use Exporter::Attributes"
-  if ($class eq __PACKAGE__) {
-    Attribute::Universal->import_into($caller,
-      Exportable => 'ANY,BEGIN',
-      Exported   => 'ANY,BEGIN',
-    );
-    # export our own "import" method into the caller class and abort here
+
+    # get export symbols or just return
+    my $_symbols = $symbols->{$class} // return;
+
+    # build :all export tag by concat @EXPORT and @EXPORT_OK
+    $_symbols->{export_tags}->{all} = [
+        @{ $_symbols->{export}    },
+        @{ $_symbols->{export_ok} },
+    ];
+
+    # this is a quite easy way to say "our @Class::EXPORT", which is normally not possible
+    # we are rewriting the symbol table, dont let strict concern about it!
+    no strict 'refs'; ## no critic
+    *{"${class}::EXPORT"}      = $_symbols->{export};
+    *{"${class}::EXPORT_OK"}   = $_symbols->{export_ok};
+    *{"${class}::EXPORT_TAGS"} = $_symbols->{export_tags};
+
+    # and finally let import the symbol into the caller namespace.
     goto &Exporter::import;
-  }
-
-  # get export symbols or just return
-  my $_symbols = $symbols->{$class} // return;
-
-  # build :all export tag by concat @EXPORT and @EXPORT_OK
-  $_symbols->{export_tags}->{all} = [
-    @{ $_symbols->{export} },
-    @{ $_symbols->{export_ok} },
-  ];
-
-  # this is a quite easy way to say "our @Class::EXPORT", which is normally not possible
-  # we are rewriting the symbol table, dont let strict concern about it!
-  no strict 'refs'; ## no critic
-  *{"${class}::EXPORT"} = $_symbols->{export};
-  *{"${class}::EXPORT_OK"} = $_symbols->{export_ok};
-  *{"${class}::EXPORT_TAGS"} = $_symbols->{export_tags};
-
-  # and finally let import the symbol into the caller namespace.
-  goto &Exporter::import;
 }
 
 1;
