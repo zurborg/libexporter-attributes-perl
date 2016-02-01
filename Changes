@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+0.002 2016-02-01
  - add test module TestMod that uses MyExport (by Alexandr Ciornii)
  - allow whitespaces in tag list
  - require minimum of perl 5.16
