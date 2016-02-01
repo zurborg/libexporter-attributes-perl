@@ -59,6 +59,27 @@ sub import {
     my $class = $_[0];
     my $caller = scalar caller;
 
+    if ($class eq __PACKAGE__) {
+        goto &_my_import;
+    } else {
+        goto &_your_import;
+    }
+}
+
+sub _my_import {
+    my $class = $_[0];
+    my $caller = scalar caller;
+
+    Attribute::Universal->import_into($caller,
+        Exportable => 'ANY,BEGIN',
+        Exported   => 'ANY,BEGIN',
+    );
+    goto &Exporter::import;
+}
+
+sub _your_import {
+    my $class = $_[0];
+    my $caller = scalar caller;
 
     # get export symbols or just return
     my $_symbols = $symbols->{$class} // return;
