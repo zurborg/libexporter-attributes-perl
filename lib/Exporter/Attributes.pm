@@ -136,7 +136,7 @@ Which adds the name of the symbol to C<@EXPORT>
 
 =item * I<Exportable>
 
-Which adds the name of the symbol to C<EXPORT_OK>
+Which adds the name of the symbol to C<@EXPORT_OK>
 
 =back
 
